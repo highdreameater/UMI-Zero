@@ -1,0 +1,22 @@
+pipeline:
+  mode: "video" # "video" or "live"
+  device: "cuda" # "cuda" or "cpu"
+  save_outputs: true
+  output_dir: "data/output"
+
+perception:
+  hand_confidence: 0.7
+  max_num_hands: 1
+  object_tracking_method: "aruco_fallback" # "aruco_fallback" or "sam2"
+  aruco_dict: "DICT_4X4_50"
+  aruco_marker_id: 0
+  marker_size_meters: 0.05
+
+representation:
+  pinch_threshold_meters: 0.035
+  smooth_window_size: 5
+
+retargeting:
+  target_robot: "franka_panda" # "franka_panda" or "ur5_gripper"
+  workspace_scale: [1.2, 1.2, 1.2]
+  workspace_offset: [0.4, 0.0, 0.1]

@@ -1,0 +1,10 @@
+camera:
+  source: "data/input_videos/sample_demo.mp4" # Path or integer camera index (e.g., 0)
+  resolution: [640, 480]
+  fps: 30
+  intrinsics:
+    fx: 615.0
+    fy: 615.0
+    cx: 320.0
+    cy: 240.0
+  distortion_coefficients: [0.0, 0.0, 0.0, 0.0, 0.0]

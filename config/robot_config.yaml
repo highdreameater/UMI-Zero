@@ -1,0 +1,31 @@
+franka_panda:
+  urdf_path: "franka_panda/panda.urdf"
+  ee_link_name: "panda_hand"
+  joint_names:
+    - "panda_joint1"
+    - "panda_joint2"
+    - "panda_joint3"
+    - "panda_joint4"
+    - "panda_joint5"
+    - "panda_joint6"
+    - "panda_joint7"
+  gripper_joint_names:
+    - "panda_finger_joint1"
+    - "panda_finger_joint2"
+  max_gripper_aperture: 0.08 # meters
+  home_configuration: [0.0, -0.785, 0.0, -2.356, 0.0, 1.571, 0.785]
+
+ur5_gripper:
+  urdf_path: "ur5/ur5_with_gripper.urdf"
+  ee_link_name: "ee_link"
+  joint_names:
+    - "shoulder_pan_joint"
+    - "shoulder_lift_joint"
+    - "elbow_joint"
+    - "wrist_1_joint"
+    - "wrist_2_joint"
+    - "wrist_3_joint"
+  gripper_joint_names:
+    - "robotiq_85_left_knuckle_joint"
+  max_gripper_aperture: 0.085
+  home_configuration: [0.0, -1.57, 1.57, -1.57, -1.57, 0.0]
