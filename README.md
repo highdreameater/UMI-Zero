@@ -116,40 +116,74 @@ Stanford's **UMI (Universal Manipulation Interface)** represents the state-of-th
 ### 4.1 Relative $SE(3)$ Interaction Transformation
 To make demonstration tokens transferable across varying camera viewpoints, workspaces, and embodiments, motions are expressed in the coordinate frame of the target object:
 
-$$\mathbf{T}_{\mathrm{cam,obj}} = \begin{bmatrix} \mathbf{R}_{\mathrm{obj}} & \mathbf{t}_{\mathrm{obj}} \\ \mathbf{0}_{1 \times 3} & 1 \end{bmatrix} \in SE(3), \quad \mathbf{T}_{\mathrm{cam,wrist}} = \begin{bmatrix} \mathbf{R}_{\mathrm{wrist}} & \mathbf{t}_{\mathrm{wrist}} \\ \mathbf{0}_{1 \times 3} & 1 \end{bmatrix} \in SE(3)$$
+$$
+\mathbf{T}_{\mathrm{cam,obj}} = \begin{bmatrix} \mathbf{R}_{\mathrm{obj}} & \mathbf{t}_{\mathrm{obj}} \\ \mathbf{0}_{1 \times 3} & 1 \end{bmatrix} \in SE(3), \quad \mathbf{T}_{\mathrm{cam,wrist}} = \begin{bmatrix} \mathbf{R}_{\mathrm{wrist}} & \mathbf{t}_{\mathrm{wrist}} \\ \mathbf{0}_{1 \times 3} & 1 \end{bmatrix} \in SE(3)
+$$
 
 The analytical inverse of an $SE(3)$ transformation matrix is:
 
-$$\mathbf{T}_{\mathrm{cam,obj}}^{-1} = \begin{bmatrix} \mathbf{R}_{\mathrm{obj}}^T & -\mathbf{R}_{\mathrm{obj}}^T \mathbf{t}_{\mathrm{obj}} \\ \mathbf{0}_{1 \times 3} & 1 \end{bmatrix}$$
+$$
+\mathbf{T}_{\mathrm{cam,obj}}^{-1} = \begin{bmatrix} \mathbf{R}_{\mathrm{obj}}^T & -\mathbf{R}_{\mathrm{obj}}^T \mathbf{t}_{\mathrm{obj}} \\ \mathbf{0}_{1 \times 3} & 1 \end{bmatrix}
+$$
 
 The invariant relative interaction pose $\mathbf{T}_{\mathrm{rel}}$ is:
 
-$$\mathbf{T}_{\mathrm{rel}} = \mathbf{T}_{\mathrm{cam,obj}}^{-1} \cdot \mathbf{T}_{\mathrm{cam,wrist}} = \begin{bmatrix} \mathbf{R}_{\mathrm{obj}}^T \mathbf{R}_{\mathrm{wrist}} & \mathbf{R}_{\mathrm{obj}}^T (\mathbf{t}_{\mathrm{wrist}} - \mathbf{t}_{\mathrm{obj}}) \\ \mathbf{0}_{1 \times 3} & 1 \end{bmatrix}$$
+$$
+\mathbf{T}_{\mathrm{rel}} = \mathbf{T}_{\mathrm{cam,obj}}^{-1} \cdot \mathbf{T}_{\mathrm{cam,wrist}} = \begin{bmatrix} \mathbf{R}_{\mathrm{obj}}^T \mathbf{R}_{\mathrm{wrist}} & \mathbf{R}_{\mathrm{obj}}^T (\mathbf{t}_{\mathrm{wrist}} - \mathbf{t}_{\mathrm{obj}}) \\ \mathbf{0}_{1 \times 3} & 1 \end{bmatrix}
+$$
 
 ### 4.2 Occlusion Imputation via Constant-Velocity Kalman Filtering
 When the demonstrator's hand closes around the target object, fiducials and visual features undergo severe occlusion. A continuous-discrete linear Kalman filter tracks 3D positions with velocity states:
 
-$$\mathbf{x}_k = \begin{bmatrix} x_k & y_k & z_k & \dot{x}_k & \dot{y}_k & \dot{z}_k \end{bmatrix}^T \in \mathbb{R}^6$$
+$$
+\mathbf{x}_k = \begin{bmatrix} x_k & y_k & z_k & \dot{x}_k & \dot{y}_k & \dot{z}_k \end{bmatrix}^T \in \mathbb{R}^6
+$$
 
-$$\mathbf{F} = \begin{bmatrix} \mathbf{I}_{3 \times 3} & \Delta t \, \mathbf{I}_{3 \times 3} \\ \mathbf{0}_{3 \times 3} & \mathbf{I}_{3 \times 3} \end{bmatrix}, \quad \mathbf{H} = \begin{bmatrix} \mathbf{I}_{3 \times 3} & \mathbf{0}_{3 \times 3} \end{bmatrix}$$
+$$
+\mathbf{F} = \begin{bmatrix} \mathbf{I}_{3 \times 3} & \Delta t \, \mathbf{I}_{3 \times 3} \\ \mathbf{0}_{3 \times 3} & \mathbf{I}_{3 \times 3} \end{bmatrix}, \quad \mathbf{H} = \begin{bmatrix} \mathbf{I}_{3 \times 3} & \mathbf{0}_{3 \times 3} \end{bmatrix}
+$$
 
-- **Measurement Available ($k$)**:
-  $$\mathbf{y}_k = \mathbf{z}_k - \mathbf{H} \hat{\mathbf{x}}_{k|k-1}, \quad \mathbf{K}_k = \mathbf{P}_{k|k-1} \mathbf{H}^T (\mathbf{H} \mathbf{P}_{k|k-1} \mathbf{H}^T + \mathbf{R})^{-1}$$
-  $$\hat{\mathbf{x}}_{k|k} = \hat{\mathbf{x}}_{k|k-1} + \mathbf{K}_k \mathbf{y}_k$$
-- **Occlusion Encountered**:
-  $$\hat{\mathbf{x}}_{k|k} = \mathbf{F} \hat{\mathbf{x}}_{k-1|k-1}, \quad \mathbf{P}_{k|k} = \mathbf{F} \mathbf{P}_{k-1|k-1} \mathbf{F}^T + \mathbf{Q}$$
-  The motion continuity assumption predicts keypoint and object coordinates seamlessly until visual recovery.
+**1. Measurement Update Step (when features are tracked):**
+
+$$
+\mathbf{K}_k = \mathbf{P}_{k|k-1} \mathbf{H}^T (\mathbf{H} \mathbf{P}_{k|k-1} \mathbf{H}^T + \mathbf{R})^{-1}
+$$
+
+$$
+\hat{\mathbf{x}}_{k|k} = \hat{\mathbf{x}}_{k|k-1} + \mathbf{K}_k (\mathbf{z}_k - \mathbf{H} \hat{\mathbf{x}}_{k|k-1})
+$$
+
+**2. Motion Continuity Imputation Step (during visual occlusion):**
+
+$$
+\hat{\mathbf{x}}_{k|k} = \mathbf{F} \hat{\mathbf{x}}_{k-1|k-1}, \quad \mathbf{P}_{k|k} = \mathbf{F} \mathbf{P}_{k-1|k-1} \mathbf{F}^T + \mathbf{Q}
+$$
+
+The constant-velocity assumption smoothly predicts keypoint and object coordinates until visual recovery.
 
 ### 4.3 Grasp Detection & Aperture Mapping
-Euclidean fingertip separation $d_{\mathrm{pinch}}$ between thumb tip $\mathbf{p}_{\mathrm{thumb}} \in \mathbb{R}^3$ and index fingertip $\mathbf{p}_{\mathrm{index}} \in \mathbb{R}^3$:
+Euclidean fingertip separation $d_{\mathrm{pinch}}$ is calculated from thumb tip $\mathbf{p}_{\mathrm{thumb}}$ and index fingertip $\mathbf{p}_{\mathrm{index}}$:
 
-$$d_{\mathrm{pinch}} = \|\mathbf{p}_{\mathrm{thumb}} - \mathbf{p}_{\mathrm{index}}\|_2$$
+$$
+d_{\mathrm{pinch}} = \|\mathbf{p}_{\mathrm{thumb}} - \mathbf{p}_{\mathrm{index}}\|_2
+$$
 
-$$\mathrm{is\_grasped} = \begin{cases} \mathrm{True}, & d_{\mathrm{pinch}} < d_{\mathrm{threshold}} \\ \mathrm{False}, & \mathrm{otherwise} \end{cases}$$
+Binary grasp activation triggers when fingertip separation falls below the threshold:
 
-For parallel-jaw grippers with maximum aperture $A_{\mathrm{max}}$ (e.g., $0.08\,\mathrm{m}$ for Franka Hand):
+$$
+\mathrm{is\_grasped} = 
+\begin{cases} 
+\mathrm{True} & \text{if } d_{\mathrm{pinch}} < d_{\mathrm{threshold}} \\ 
+\mathrm{False} & \text{otherwise} 
+\end{cases}
+$$
 
-$$A_{\mathrm{target}} = \min\left(\max\left(\frac{d_{\mathrm{pinch}}}{d_{\mathrm{human,max}}}, 0.0\right), 1.0\right) \cdot A_{\mathrm{max}}$$
+For parallel-jaw grippers with maximum aperture $A_{\mathrm{max}}$ ($0.08\text{ m}$ for Franka Hand):
+
+$$
+A_{\mathrm{target}} = \min\left(\max\left(\frac{d_{\mathrm{pinch}}}{d_{\mathrm{human,max}}}, 0.0\right), 1.0\right) \cdot A_{\mathrm{max}}
+$$
+
 
 
 ---
@@ -213,7 +247,11 @@ bare_hand_robotics/
 
 ### 6.1 `src/perception/`
 - **`camera_stream.py`**: Ingests video files, live webcam streams, or generates procedural demonstration frames if no physical device is connected. Provides the calibrated camera intrinsics matrix:
-  $$\mathbf{K} = \begin{bmatrix} f_x & 0 & c_x \\ 0 & f_y & c_y \\ 0 & 0 & 1 \end{bmatrix}$$
+
+  $$
+  \mathbf{K} = \begin{bmatrix} f_x & 0 & c_x \\ 0 & f_y & c_y \\ 0 & 0 & 1 \end{bmatrix}
+  $$
+
 - **`hand_tracker.py`**: Integrates MediaPipe Hands to detect 21 normalized landmarks. Unprojects 2D image coordinates into 3D metric camera space using calibrated focal lengths and apparent palm geometry. Constructs an orthonormal hand coordinate frame $\mathbf{R}_{\mathrm{hand}} = [\mathbf{v}_x, \mathbf{v}_y, \mathbf{v}_z] \in SO(3)$ via Gram-Schmidt orthogonalization.
 - **`object_tracker.py`**: Estimates the target object's 6-DoF transformation matrix $\mathbf{T}_{\mathrm{cam,obj}}$. Supports ArUco square planar tag tracking with `cv2.solvePnP` (using square corner geometry), and color/contour/SAM2 bounding-box fallbacks.
 - **`occlusion_handler.py`**: Maintains dedicated 6-DoF constant-velocity Kalman filters for wrist, thumb tip, index tip, and object positions. When finger contact occludes marker tags, it predicts the next trajectory state and applies Savitzky-Golay weighted smoothing over temporal buffers.
